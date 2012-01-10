@@ -2,15 +2,12 @@
 
 value(null) -> null;
 value(String) ->
-    S = string:concat(String, "."),
+    io:format("~s~n", [String]),
+    S = string:concat(re:replace(String, "<[^>]*>", "\"&\"", [global, {return, list}]), "."),
     io:format("~s~n", [S]),
     {ok,Tokens,_} = erl_scan:string(S),
-    io:format("~w~n", [Tokens]),
-    % filter pids : {'<',1},{float,1,7765.625},{'.',1},{integer,1,0},{'>',1},{',',1}
-    
-    io:format("~w~n", [Tokens]),
     {ok,Term} = erl_parse:parse_term(Tokens),
-    io:format("~w~n", [Term]),
+    io:format("~p~n", [Term]),
     Term.
 
 %% How to handle the "Attempting to restart script through sudo -u riak" line?
@@ -24,14 +21,14 @@ object_acc([H|T], {Name, Value}, Objects) ->
     case string:chr(H, $:) of
         0 -> object_acc(T, {Name, string:concat(Value, string:strip(H))}, Objects);
         Index -> {NewName, NewValue} = lists:split(Index, H),
-            object_acc(T, {NewName, string:strip(NewValue)}, [{Name, value(Value)}|Objects])
+            object_acc(T, {string:sub_string(NewName, 1, string:len(NewName)-1), string:strip(NewValue)}, [{Name, value(Value)}|Objects])
     end;
-object_acc([], Current, Objects) ->
-    [Current|Objects].
+object_acc([], {Name, Value}, Objects) ->
+    [{Name, value(Value)}|Objects].
     
 main(_) ->
     Status = objects(string:tokens(os:cmd("riak-repl status"), "\n")),
-    io:format("~w~n", [Status]).
+    io:format("~p~n", [Status]).
     
     %% each line that has a (:), parse value following the colon, until the next line with a colon, or end.
     
