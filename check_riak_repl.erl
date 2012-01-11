@@ -2,22 +2,20 @@
 
 value(null) -> null;
 value(String) ->
-    %io:format("~s~n", [String]),
+    %% The code below has a problem parsing pids, so we use the regular expression to wrap all pids in quotes.
+    %% Also, we wrapped the pid in a {pid, "<X.Y.Z>"} tuple for easier querying later.
     S = string:concat(re:replace(String, "<[^>]*>", "{pid, \"&\"}", [global, {return, list}]), "."),
-    %io:format("~s~n", [S]),
     {ok,Tokens,_} = erl_scan:string(S),
     {ok,Term} = erl_parse:parse_term(Tokens),
-    %io:format("~p~n", [Term]),
     Term.
 
-%% How to handle the "Attempting to restart script through sudo -u riak" line?
+%% This is how to handle the "Attempting to restart script through sudo -u riak" line
 objects(["Attempting to restart script through sudo -u riak"|T]) ->
     objects(T);
 objects(StringList) ->
     object_acc(StringList, {null, null}, []).
     
 object_acc([H|T], {Name, Value}, Objects) ->
-    %io:format("~s~n", [H]),
     case string:chr(H, $:) of
         0 -> object_acc(T, {Name, string:concat(Value, string:strip(H))}, Objects);
         Index -> {NewName, NewValue} = lists:split(Index, H),
@@ -27,9 +25,7 @@ object_acc([], {Name, Value}, Objects) ->
     [{Name, value(Value)}|Objects].
     
 main([Type, Site]) ->
-    %Args = string:token(Arg, " "),
     Status = objects(string:tokens(os:cmd("riak-repl status"), "\n")),
-    %Stats = find_stats(lists:nth(1, Args), lists:nth(2, Args), Status),
     Stats = find_stats(Type, Site, Status),
     {state, ConnectionState} = Stats,
     case ConnectionState of
@@ -48,13 +44,11 @@ main([Type, Site]) ->
         merkle_build    -> nagios:okay("merkle_build");
         merkle_xfer     -> nagios:okay("merkle_xfer");
         merkle_wait_ack -> nagios:okay("merkle_wait_ack");
-        %merkle_diff     -> nagios:okay("merkle_diff");
+        %merkle_diff     -> nagios:okay("merkle_diff");  % <-- client already defines this one.
         connected       -> nagios:okay("connected");
         server_not_found -> nagios:critical("Server Not Found");
         Response -> nagios:unknown(string:concat("I don't know what to make of ", Response))
     end.
-    
-    %% each line that has a (:), parse value following the colon, until the next line with a colon, or end.
     
 find_stats("client", Site, Status) ->
     find_stats("client_stats", Site, Status);
@@ -68,5 +62,3 @@ find_stats(StatKey, Site, Status) ->
         [] -> {state, server_not_found};
         _ -> lists:nth(1, [lists:keyfind(state, 1, S) || S <- ListOfStats, lists:keyfind(Site, 2, S) =/= false])
     end.
-% TODO: If server stats has no key for what you're looking for, it's down, otherwise it's up
-% I think this script doesn't handle that case.
