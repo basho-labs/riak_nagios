@@ -1,14 +1,5 @@
 #!/usr/bin/env escript
 
-value(null) -> null;
-value(String) ->
-    %% The code below has a problem parsing pids, so we use the regular expression to wrap all pids in quotes.
-    %% Also, we wrapped the pid in a {pid, "<X.Y.Z>"} tuple for easier querying later.
-    S = string:concat(re:replace(String, "<[^>]*>", "{pid, \"&\"}", [global, {return, list}]), "."),
-    {ok,Tokens,_} = erl_scan:string(S),
-    {ok,Term} = erl_parse:parse_term(Tokens),
-    Term.
-
 %% This is how to handle the "Attempting to restart script through sudo -u riak" line
 objects(["Attempting to restart script through sudo -u riak"|T]) ->
     objects(T);
@@ -19,10 +10,10 @@ object_acc([H|T], {Name, Value}, Objects) ->
     case string:chr(H, $:) of
         0 -> object_acc(T, {Name, string:concat(Value, string:strip(H))}, Objects);
         Index -> {NewName, NewValue} = lists:split(Index, H),
-            object_acc(T, {string:sub_string(NewName, 1, string:len(NewName)-1), string:strip(NewValue)}, [{Name, value(Value)}|Objects])
+            object_acc(T, {string:sub_string(NewName, 1, string:len(NewName)-1), string:strip(NewValue)}, [{Name, riak_nagios:value(Value)}|Objects])
     end;
 object_acc([], {Name, Value}, Objects) ->
-    [{Name, value(Value)}|Objects].
+    [{Name, riak_nagios:value(Value)}|Objects].
     
 main([Type, Site]) ->
     Status = objects(string:tokens(os:cmd("riak-repl status"), "\n")),
