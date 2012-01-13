@@ -1,5 +1,12 @@
 #!/usr/bin/env escript
 
+%%%%%%
+%
+% Checks the status of Riak Repl with the riak-repl status command
+%
+% Parameters to the script documented in usage/0
+
+
 %% This is how to handle the "Attempting to restart script through sudo -u riak" line
 objects(["Attempting to restart script through sudo -u riak"|T]) ->
     objects(T);
@@ -39,7 +46,15 @@ main([Type, Site]) ->
         connected       -> nagios:okay("connected");
         server_not_found -> nagios:critical("Server Not Found");
         Response -> nagios:unknown(string:concat("I don't know what to make of ", Response))
-    end.
+    end;
+main(_) ->
+    usage().
+    
+usage() ->
+    io:format("Usage: check_riak_repl.erl [server|client] [sitename]~n"),
+    io:format("server|client - role performed by this node~n"),
+    io:format("sitename      - the name of the replication site~n"),
+    nagios:unknown("improper usage of check script").
     
 find_stats("client", Site, Status) ->
     find_stats("client_stats", Site, Status);

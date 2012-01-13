@@ -1,4 +1,12 @@
 #!/usr/bin/env escript
+
+%%%%%%
+%
+% This is a check based on the output of riak-admin status
+%
+% Available checks are documented in usage/0
+
+
 get_property(Prop, [H|StringList]) ->
     case string:str(H, Prop) of
         1 -> {_, Value} = lists:split(string:len(Prop) + 3, H),
@@ -24,4 +32,15 @@ main([Property, Warn, Critical]) ->
             WarnThreshold, 
             CriticalThreshold)
         %% TODO: Tx/Rx within the cluster (GET/PUT fsms)
-    end.
+    end;
+main(_) ->
+    usage().
+
+usage() ->
+    io:format("Usage: check_riak_admin.erl property warning-threshold critical-threshold~n"),
+    io:format("property~n"),
+    io:format("    memory   - percent of memory allocated to riak~n"),
+    io:format("    siblings - Mean number of siblings encountered of all GETs by this node within the last minute~n"),
+    io:format("warning-threshold  - If the check returns a value above this, return a nagios warning~n"),
+    io:format("critical-threshold - If the check returns a value above this, return a nagios critical~n"),
+    nagios:unknown("improper usage of check script").

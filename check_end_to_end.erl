@@ -1,5 +1,14 @@
 #!/usr/bin/env escript
 
+%%%%%%
+%
+% This is an end to end check for riak's http api, which runs the following workflow
+%
+% 1) HTTP PUT
+% 2) Confirm PUT via HTTP GET
+% 3) HTTP DELETE
+% 4) Confirm DELETE via HTTP GET
+
 %The _code functions below break down the output from the commands and isolates the HTTP return value (i.e. 200,204,404),
 %  if there is no return value (occurs when there's a failure to connect) then they return the value 0.
 return_code(StringList) ->
@@ -54,4 +63,13 @@ main([Host, Port, Path]) ->
     if
         Stat4 =/= 404 -> nagios:critical("Second Read Failed");
         true -> nagios:okay("Test Passed")
-    end.
+    end;
+main(_) ->
+    usage().
+
+usage() ->
+    io:format("Usage: check_end_to_end.erl hostname port path~n"),
+    io:format("hostname - hostname to be tested (most likely 127.0.0.1)~n"),
+    io:format("port     - port to be tested~n"),
+    io:format("path     - base path to riak~n"),
+    nagios:unknown("improper usage of check script").

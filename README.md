@@ -19,4 +19,4 @@
   * Perl is the standard
   * Python / Bash is usually installed by default, and easier to work with
   * Ruby is not usually installed by default
-  
+
