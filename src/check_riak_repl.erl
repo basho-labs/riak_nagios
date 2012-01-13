@@ -1,4 +1,7 @@
-#!/usr/bin/env escript
+%% check_riak_repl.erl
+-module(check_riak_repl).
+
+-export([main/1]).
 
 %%%%%%
 %
@@ -28,24 +31,24 @@ main([Type, Site]) ->
     {state, ConnectionState} = Stats,
     case ConnectionState of
         % client
-        disconnected    -> nagios:critical("Disconnected"); 
-        connecting      -> nagios:critical("Connecting");
-        wait_peerinfo   -> nagios:okay("Wait PeerInfo");
-        merkle_recv     -> nagios:okay("Merkle Recv");
-        merkle_diff     -> nagios:okay("Merkle Diff");
-        merkle_exchange -> nagios:okay("Merkle Exchange");
+        disconnected    -> riak_nagios:critical("Disconnected"); 
+        connecting      -> riak_nagios:critical("Connecting");
+        wait_peerinfo   -> riak_nagios:okay("Wait PeerInfo");
+        merkle_recv     -> riak_nagios:okay("Merkle Recv");
+        merkle_diff     -> riak_nagios:okay("Merkle Diff");
+        merkle_exchange -> riak_nagios:okay("Merkle Exchange");
         
         %server
-        send_peerinfo   -> nagios:okay("send_peerinfo");
-        wait_peerinfo   -> nagios:okay("wait_peerinfo");
-        merkle_send     -> nagios:okay("merkle_send");
-        merkle_build    -> nagios:okay("merkle_build");
-        merkle_xfer     -> nagios:okay("merkle_xfer");
-        merkle_wait_ack -> nagios:okay("merkle_wait_ack");
-        %merkle_diff     -> nagios:okay("merkle_diff");  % <-- client already defines this one.
-        connected       -> nagios:okay("connected");
-        server_not_found -> nagios:critical("Server Not Found");
-        Response -> nagios:unknown(string:concat("I don't know what to make of ", Response))
+        send_peerinfo   -> riak_nagios:okay("send_peerinfo");
+        %wait_peerinfo   -> riak_nagios:okay("wait_peerinfo");
+        merkle_send     -> riak_nagios:okay("merkle_send");
+        merkle_build    -> riak_nagios:okay("merkle_build");
+        merkle_xfer     -> riak_nagios:okay("merkle_xfer");
+        merkle_wait_ack -> riak_nagios:okay("merkle_wait_ack");
+        %merkle_diff     -> riak_nagios:okay("merkle_diff");  % <-- client already defines this one.
+        connected       -> riak_nagios:okay("connected");
+        server_not_found -> riak_nagios:critical("Server Not Found");
+        Response -> riak_nagios:unknown(string:concat("I don't know what to make of ", Response))
     end;
 main(_) ->
     usage().
@@ -54,7 +57,7 @@ usage() ->
     io:format("Usage: check_riak_repl.erl [server|client] [sitename]~n"),
     io:format("server|client - role performed by this node~n"),
     io:format("sitename      - the name of the replication site~n"),
-    nagios:unknown("improper usage of check script").
+    riak_nagios:unknown("improper usage of check script").
     
 find_stats("client", Site, Status) ->
     find_stats("client_stats", Site, Status);

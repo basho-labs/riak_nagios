@@ -1,5 +1,6 @@
-#!/usr/bin/env escript
+-module(check_end_to_end).
 
+-export([main/1]).
 %%%%%%
 %
 % This is an end to end check for riak's http api, which runs the following workflow
@@ -43,26 +44,26 @@ main([Host, Port, Path]) ->
     %Test writing, reading, deleting, and reading (to confirm delete)
     {Stat1, _} = string:to_integer(return_code(string:tokens(os:cmd(Cmd1), "\n"))),
     if 
-        Stat1 =/= 204 -> nagios:critical("Write Failed"); 
+        Stat1 =/= 204 -> riak_nagios:critical("Write Failed"); 
         true -> true
     end,
     
     {Stat2, _} = string:to_integer(return_code(string:tokens(os:cmd(Cmd2), "\n"))),
     if  
-        Stat2 =/= 200 -> nagios:critical("First Read Failed");
+        Stat2 =/= 200 -> riak_nagios:critical("First Read Failed");
         true -> true
     end,
     
     {Stat3, _} = string:to_integer(return_code(string:tokens(os:cmd(Cmd3), "\n"))),
     if
-        Stat3 =/= 204 -> nagios:critical("Delete Failed");
+        Stat3 =/= 204 -> riak_nagios:critical("Delete Failed");
         true -> true
     end,
     
     {Stat4, _} = string:to_integer(return_code(string:tokens(os:cmd(Cmd2), "\n"))),
     if
-        Stat4 =/= 404 -> nagios:critical("Second Read Failed");
-        true -> nagios:okay("Test Passed")
+        Stat4 =/= 404 -> riak_nagios:critical("Second Read Failed");
+        true -> riak_nagios:okay("Test Passed")
     end;
 main(_) ->
     usage().
@@ -72,4 +73,4 @@ usage() ->
     io:format("hostname - hostname to be tested (most likely 127.0.0.1)~n"),
     io:format("port     - port to be tested~n"),
     io:format("path     - base path to riak~n"),
-    nagios:unknown("improper usage of check script").
+    riak_nagios:unknown("improper usage of check script").
