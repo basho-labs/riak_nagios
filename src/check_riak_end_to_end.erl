@@ -1,4 +1,4 @@
--module(check_end_to_end).
+-module(check_riak_end_to_end).
 
 -export([main/1]).
 %%%%%%
@@ -36,7 +36,7 @@ get_commands(Path) ->
 main([Host, Port, Path]) ->
     %Concatenate the Path to be tested
     TestPath = string:concat(string:concat(string:concat(string:concat(string:concat("http://", Host), ":"), Port), "/"), Path),
-    io:put_chars(string:concat(string:concat("Testing: ", TestPath), "\n")),
+    % io:put_chars(string:concat(string:concat("Testing: ", TestPath), "\n")),
 
     %Get the three commands need to be run for writing, reading, and deleting
     {Cmd1, Cmd2, Cmd3} = get_commands(TestPath),

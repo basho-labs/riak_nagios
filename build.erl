@@ -4,7 +4,7 @@ main(_) ->
     {ok, _, BeamCode} = compile:file("src/riak_nagios.erl", [binary, debug_info]),
     escriptize("check_riak_repl", BeamCode),
     escriptize("check_riak_admin", BeamCode),
-    escriptize("check_end_to_end", BeamCode),
+    escriptize("check_riak_end_to_end", BeamCode),
     escriptize("check_riak_up", BeamCode).
         
 escriptize(Filename, BeamCode) ->
