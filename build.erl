@@ -8,6 +8,7 @@ main(_) ->
     escriptize("check_riak_up", BeamCode).
         
 escriptize(Filename, BeamCode) ->
+    io:format("Escriptizing ~s~n", [Filename]),
     {ok, _, ScriptBeamCode} = compile:file("src/" ++ Filename ++ ".erl", [binary, debug_info]),
     escript:create("ebin/" ++ Filename ++ ".escript",
                      [shebang,
