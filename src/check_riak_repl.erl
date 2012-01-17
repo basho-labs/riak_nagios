@@ -26,7 +26,17 @@ object_acc([], {Name, Value}, Objects) ->
     [{Name, riak_nagios:value(Value)}|Objects].
     
 main([Type, Site]) ->
-    Status = objects(string:tokens(os:cmd("riak-repl status"), "\n")),
+    AdminStatus = string:tokens(os:cmd("riak-admin status"), "\n"),
+    NodeName = riak_nagios:get_property("nodename", AdminStatus, 3),
+    StringStatus = string:tokens(os:cmd("riak-repl status"), "\n"),
+    Status = objects(StringStatus),
+    LeaderName = riak_nagios:get_property("leader", StringStatus, 2),
+    %io:format("~s:~s~n", [NodeName, LeaderName]),
+    case NodeName =:= LeaderName of
+        false -> riak_nagios:okay("Replication Ok, " ++ atom_to_list(NodeName) ++ " is not replication leader");
+        true -> null
+    end,
+    
     Stats = find_stats(Type, Site, Status),
     {state, ConnectionState} = Stats,
     case ConnectionState of

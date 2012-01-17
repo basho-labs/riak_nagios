@@ -8,13 +8,8 @@
 % Available checks are documented in usage/0
 
 
-get_property(Prop, [H|StringList]) ->
-    case string:str(H, Prop) of
-        1 -> {_, Value} = lists:split(string:len(Prop) + 3, H),
-             riak_nagios:value(Value);
-        _ -> get_property(Prop, StringList)
-    end;
-get_property(_Prop, []) -> null.
+get_property(Prop, Strings) ->
+    riak_nagios:get_property(Prop, Strings, 3).
 
 main([Property, Warn, Critical]) ->
     WarnThreshold = riak_nagios:value(Warn),

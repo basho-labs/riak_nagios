@@ -1,6 +1,6 @@
 -module(riak_nagios).
 
--export([value/1]).
+-export([value/1, get_property/3]).
 -export([unknown/1, critical/1, warning/1, okay/1, decide/4]).
 
 nagios(Header, Message, Code) ->
@@ -28,3 +28,11 @@ value(String) ->
     {ok,Tokens,_} = erl_scan:string(S),
     {ok,Term} = erl_parse:parse_term(Tokens),
     Term.
+    
+get_property(Prop, [H|StringList], Offset) ->
+    case string:str(H, Prop) of
+        1 -> {_, Value} = lists:split(string:len(Prop) + Offset, H),
+             riak_nagios:value(Value);
+        _ -> get_property(Prop, StringList, Offset)
+    end;
+get_property(_Prop, [], _Offset) -> null.
