@@ -79,6 +79,7 @@ main([Type, Site]) ->
         %merkle_diff     -> riak_nagios:okay("merkle_diff");  % <-- client already defines this one.
         connected       -> riak_nagios:okay("connected");
         
+        maybe_too_busy   -> riak_nagios:unknown("Site Server may be too_busy");
         server_not_found -> riak_nagios:critical("Server Not Found");
         Response -> riak_nagios:unknown(Response)
     end;
@@ -98,8 +99,10 @@ find_stats("server", Site, Status) ->
 find_stats(StatKey, Site, Status) ->
     {StatKey, Stats} = lists:keyfind(StatKey, 1, Status),
     ListOfStats = [X || {{pid, _}, {message_queue_len, _}, {status, X}} <- Stats],
+    ListOfBusy  = [too_busy || {{pid, _}, {message_queue_len, _}, too_busy} <- Stats],
     Stat = [lists:keyfind(state, 1, S) || S <- ListOfStats, lists:keyfind(Site, 2, S) =/= false],
-    case Stat of
-        [] -> {state, server_not_found};
+    case {Stat, length(ListOfBusy)} of
+        {[], 0} -> {state, server_not_found};
+        {[], _} -> {state, maybe_too_busy};
         _ -> lists:nth(1, [lists:keyfind(state, 1, S) || S <- ListOfStats, lists:keyfind(Site, 2, S) =/= false])
     end.
