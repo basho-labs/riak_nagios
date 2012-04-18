@@ -40,25 +40,47 @@ main([Type, Site]) ->
     Stats = find_stats(Type, Site, Status),
     {state, ConnectionState} = Stats,
     case ConnectionState of
+        % 1.1.0 syncv1_client states
+        merkle_exchange     -> riak_nagios:okay("Merkle Exchange");
+        merkle_recv         -> riak_nagios:okay("Merkle Recv");
+        merkle_diff         -> riak_nagios:okay("Merkle Diff");
+        
+        % 1.1.0 syncv1_server states
+        wait_for_fullsync   -> riak_nagios:okay("Waiting for fullsync");
+        merkle_send         -> riak_nagios:okay("Merkle Send");
+        merkle_build        -> riak_nagios:okay("Merkle Build");
+        merkle_xfer         -> riak_nagios:okay("Merkle Transfer");
+        %merkle_wait_ack
+        %merkle_diff    
+        
+        % 1.1.0 keylist_client states
+        % wait_for_fullsync   -> riak_nagios:okay("Waiting for fullsync")
+        request_partition   -> riak_nagios:okay("Request Partition");
+        send_keylist        -> riak_nagios:okay("Sending Keylist");
+        wait_ack            -> riak_nagios:okay("Wait Ack");
+        
+        % 1.1.0 keylist_server states
+        wait_for_partition  -> riak_nagios:okay("Waiting for partition");
+        build_keylist       -> riak_nagios:okay("Building Keylist");
+        wait_keylist        -> riak_nagios:okay("Waiting Keylist");
+        diff_keylist        -> riak_nagios:okay("Diff Keylist");
+        
+        
+        % 1.0 States
         % client
         disconnected    -> riak_nagios:critical("Disconnected"); 
         connecting      -> riak_nagios:critical("Connecting");
         wait_peerinfo   -> riak_nagios:okay("Wait PeerInfo");
-        merkle_recv     -> riak_nagios:okay("Merkle Recv");
-        merkle_diff     -> riak_nagios:okay("Merkle Diff");
-        merkle_exchange -> riak_nagios:okay("Merkle Exchange");
         
         %server
         send_peerinfo   -> riak_nagios:okay("send_peerinfo");
         %wait_peerinfo   -> riak_nagios:okay("wait_peerinfo");
-        merkle_send     -> riak_nagios:okay("merkle_send");
-        merkle_build    -> riak_nagios:okay("merkle_build");
-        merkle_xfer     -> riak_nagios:okay("merkle_xfer");
         merkle_wait_ack -> riak_nagios:okay("merkle_wait_ack");
         %merkle_diff     -> riak_nagios:okay("merkle_diff");  % <-- client already defines this one.
         connected       -> riak_nagios:okay("connected");
+        
         server_not_found -> riak_nagios:critical("Server Not Found");
-        Response -> riak_nagios:unknown(string:concat("I don't know what to make of ", Response))
+        Response -> riak_nagios:unknown(Response)
     end;
 main(_) ->
     usage().
