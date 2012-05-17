@@ -26,9 +26,11 @@
 './rebar compile'
 
 #### Deployment
+```
 ➜  riak_nagios git:(jnd-otp-version) scp ebin/riak_nagios.beam root@s3p406.san2:/usr/lib/riak/lib/basho-patches/.
 ➜  riak_nagios git:(jnd-otp-version) scp bin/nagtool root@s3p406.san2:/usr/lib/riak/erts-5.8.5/bin/nagtool
 ➜  riak_nagios git:(jnd-otp-version) scp bin/riak-nagios root@s3p406.san2:/usr/sbin/riak-nagios
+```
 
 You'll also have to attach to the riak console and `l(riak_nagios).` to reload the module.
 
