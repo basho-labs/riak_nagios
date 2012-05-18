@@ -18,8 +18,6 @@ check_repl_server(ServerSite) ->
 		{true, _} -> zombies(ServerSite);
 		{false, _} -> okay(atom_to_list(node()) ++ " is not repl leader")
 	end.
-%	io:format("~p", [Stat]),
-%	okay("Repl is fine" ++ ServerSite).
 
 check_repl_client(ClientSite) ->
 	ReplClients = [riak_repl_tcp_client:status(P) || {_,P,_,_} <- supervisor:which_children(riak_repl_client_sup), P /= undefined],
@@ -68,5 +66,3 @@ okay(Message) -> nagios("OKAY", Message, 0).
 
 nagios(Header, Message, Code) ->
     {Code, Header ++ ": " ++ Message}.
-    %%io:format("~s: ~s~n", [Header, Message]),
-    %%halt(Code).
