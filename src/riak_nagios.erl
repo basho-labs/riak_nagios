@@ -62,7 +62,7 @@ repl_state_check([{state, State}], SiteName, ReplType) ->
         %% connected
 		_ -> okay(ReplType ++ " '" ++ SiteName ++ "' is in an acceptable state (" ++ atom_to_list(State) ++ ")")
 	end;
-repl_state_check(_, SiteName, ReplType) ->
+repl_state_check([], SiteName, ReplType) ->
     unknown(io_lib:format("~s '~s' not found", [ReplType, SiteName])).
 
 
