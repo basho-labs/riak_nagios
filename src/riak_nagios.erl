@@ -3,7 +3,7 @@
 
 
 check_riak_up() ->
-	case length( riak_kv_status:statistics()) > 0 of
+    case lists:member(riak_kv, riak_core_node_watcher:services()) of
 		true -> okay("Riak is up");
 		_ -> critical("Riak is down")
 	end.
