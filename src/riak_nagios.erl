@@ -20,10 +20,15 @@ check_repl_server(ServerSite) ->
 	end.
 
 check_repl_client(ClientSite) ->
-	ReplClients = [riak_repl_tcp_client:status(P) || {_,P,_,_} <- supervisor:which_children(riak_repl_client_sup), P /= undefined],
-	ReplClientStates = [S || {status, S} <- ReplClients],
-	States = [lists:keyfind(state, 1, S) || S <- ReplClientStates, lists:keyfind(ClientSite, 2, S) =/= false],
-	repl_state_check(States, ClientSite, "Client").
+    case is_leader() of
+        true ->
+            ReplClients = [riak_repl_tcp_client:status(P) || {_,P,_,_} <- supervisor:which_children(riak_repl_client_sup), P /= undefined],
+            ReplClientStates = [S || {status, S} <- ReplClients],
+            States = [lists:keyfind(state, 1, S) || S <- ReplClientStates, lists:keyfind(ClientSite, 2, S) =/= false],
+            repl_state_check(States, ClientSite, "Client");
+        false ->
+            okay(atom_to_list(node()) ++ " is not repl leader")
+    end.
 
 is_leader() ->
 	riak_repl_leader:leader_node() == node().
@@ -56,7 +61,9 @@ repl_state_check([{state, State}], SiteName, ReplType) ->
         %% merkle_wait_ack
         %% connected
 		_ -> okay(ReplType ++ " '" ++ SiteName ++ "' is in an acceptable state (" ++ atom_to_list(State) ++ ")")
-	end.
+	end;
+repl_state_check(_, SiteName, ReplType) ->
+    unknown(io_lib:format("~s '~s' not found", [ReplType, SiteName])).
 
 
 unknown(Message) -> nagios("UNKNOWN", Message, 3).
