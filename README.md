@@ -57,6 +57,8 @@ command[check_riak_repl_from_dfw1]=riak-nagios repl-client dfw1-to-san2
 
 After any change to this file, you'll need to restart the nrpe server. On ubuntu, that's as easy as `service nagios-nrpe-server restart`
 
+You can find the current nrpe config files in the cfg directory
+
 ##### Testing NRPE
 
 Once it's configured, you can use this nrpe plugin to test. If you see any of the possible status messages, and not the 
