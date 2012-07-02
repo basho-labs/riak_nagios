@@ -61,12 +61,12 @@ check_repl_socket(_Node, Mod, Pid, SiteStatus) ->
             [_PDict, _SysState, _ParentPid, _Dbg, Misc] = SItem,
             [State] = [State || {data,[{"State", State}]} <- Misc],
             Socket = get_repl_socket_from_state(Mod, State),
-            case send_keepalive(Mod, Socket) of
-                ok ->
-                    ok;
-                {error, Reason} ->
-                    Pid ! {tcp_error, Socket, Reason},
-                    {error, Reason}
+            case port_info(Socket) of
+                undefined ->
+                    Pid ! {tcp_closed, Socket},
+                    {error, closed};
+                _ ->
+                    ok
             end;
         false ->
             ok
@@ -81,9 +81,9 @@ get_repl_socket_from_state(riak_repl_tcp_server, State) ->
     %% riak_repl_tcp_server.erl
     element(3, State).
 
-send_keepalive(Mod, Socket) ->
+port_info(Socket) ->
     Node = erlang:node(Socket),
-    rpc:call(Node, Mod, send, [Socket, keepalive]).
+    rpc:call(Node, erlang, port_info, [Socket]).
 
 is_leader(Node) ->
     rpc:call(Node, riak_repl_leader, leader_node, []) == Node.
