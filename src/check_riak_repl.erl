@@ -17,20 +17,19 @@ run(Options, _NonOptArgs) ->
             end
     end.
 
-
 check_repl(Node) ->
     case is_leader(Node) of
         true ->
-            Clients = check_repl(Node, {riak_repl_client_sup, riak_repl_tcp_client}),
-            Servers = check_repl(Node, {riak_repl_server_sup, riak_repl_tcp_server}),
+            Clients = check_repl(Node, riak_repl_client_sup),
+            Servers = check_repl(Node, riak_repl_server_sup),
             Clients ++ Servers;
         false ->
             []
     end.
 
-check_repl(Node, {Sup, Mod}) ->
+check_repl(Node, Sup) ->
     Pids = repl_pids(Node, Sup),
-    [check_repl_pid(Node, Mod, Pid) || Pid <- Pids].
+    [check_repl_pid(Node, Pid) || Pid <- Pids].
 
 repl_pids(Node, Sup) ->
     Nodes = riak_nodes(Node),
@@ -38,52 +37,52 @@ repl_pids(Node, Sup) ->
     Children = lists:flatten([Res || Res <- ResL, filter_badrpc(Res)]),
     [Pid || {_,Pid,_,_} <- Children, Pid /= undefined].
 
-check_repl_pid(Node, Mod, Pid) ->
-    case rpc:call(Node, Mod, status, [Pid]) of
-        {status, SiteStatus} ->
-            {site, _Site} = lists:keyfind(site, 1, SiteStatus),
-            case check_repl_socket(Node, Mod, Pid, SiteStatus) of
-                ok ->
+check_repl_pid(Node, Pid) ->
+    case rpc:call(Node, erlang, process_info, [Pid]) of
+        undefined ->
+            critical;
+        Info ->
+            Links = proplists:get_value(links, Info),
+            Port = first_port(Links),
+            case Port of
+                unefined ->
+                    %% no port to check
                     ok;
-                {error, _Reason} ->
-                    warning
-            end;
-        _Reply ->
-            critical
-    end.
-
-check_repl_socket(_Node, Mod, Pid, SiteStatus) ->
-    case is_connected(Mod, SiteStatus) of
-        true ->
-            %% http://www.erlang.org/doc/man/sys.html#get_status-1
-            Status = sys:get_status(Pid),
-            {status, _Pid, {module, gen_server}, SItem} = Status,
-            [_PDict, _SysState, _ParentPid, _Dbg, Misc] = SItem,
-            [State] = [State || {data,[{"State", State}]} <- Misc],
-            Socket = get_repl_socket_from_state(Mod, State),
-            case port_info(Socket) of
-                undefined ->
-                    Pid ! {tcp_closed, Socket},
-                    {error, closed};
                 _ ->
-                    ok
-            end;
-        false ->
-            ok
+                    case port_info(Port) of
+                        undefined ->
+                            %% port is closed
+                            Pid ! {tcp_closed, Port},
+                            warning;
+                        _ ->
+                            case sockname(Port) of
+                                {ok, _} ->
+                                    ok;
+                                {error, _Reason} ->
+                                    %% something has gone wrong
+                                    close_port(Port),
+                                    Pid ! {tcp_closed, Port},
+                                    warning
+                            end
+                    end
+            end
     end.
 
-%% Depends on the internal `state` record
-get_repl_socket_from_state(riak_repl_tcp_client, State) ->
-    %% riak_repl_tcp_client.erl
-    element(5, State);
+first_port([Link|_Links]) when is_port(Link) -> Link;
+first_port([_|Links]) -> first_port(Links);
+first_port([]) -> undefined.
 
-get_repl_socket_from_state(riak_repl_tcp_server, State) ->
-    %% riak_repl_tcp_server.erl
-    element(3, State).
+sockname(Socket) ->
+    Node = erlang:node(Socket),
+    rpc:call(Node, inet, sockname, [Socket]).
 
 port_info(Socket) ->
     Node = erlang:node(Socket),
     rpc:call(Node, erlang, port_info, [Socket]).
+
+close_port(Socket) ->
+    Node = erlang:node(Socket),
+    rpc:call(Node, erlang, port_close, [Socket]).
 
 is_leader(Node) ->
     rpc:call(Node, riak_repl_leader, leader_node, []) == Node.
@@ -94,19 +93,8 @@ riak_nodes(Node) ->
 filter_badrpc({badrpc, _}) -> false;
 filter_badrpc(_) -> true.
 
-is_connected(riak_repl_tcp_server, _Status) ->
-    true;
-
-is_connected(riak_repl_tcp_client, Status) ->
-    case lists:keyfind(connected, 1, Status) of
-        {connected, _, _} ->
-            true;
-        _ ->
-            false
-    end.
-
 critical() ->
-    {critical, "Unexpected return from status", []}.
+    {critical, "Unexpected return from process_info", []}.
 
 warning() ->
     {warning, "Socket errors were detected on some replication connections. These errors have been logged on the Riak node. No action is required", []}.
