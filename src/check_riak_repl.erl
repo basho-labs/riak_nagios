@@ -45,7 +45,7 @@ check_repl_pid(Node, Pid) ->
             Links = proplists:get_value(links, Info),
             Port = first_port(Links),
             case Port of
-                unefined ->
+                undefined ->
                     %% no port to check
                     ok;
                 _ ->
