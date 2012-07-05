@@ -20,6 +20,6 @@ if [ $CompError -eq 0 ] ; then
     echo "OKAY: No Compaction Errors Found."
     exit 0
 else
-    echo "WARNING: $CompError Compaction Errors Found."
-    exit 1
+    echo "CRITICAL: $CompError Compaction Errors Found."
+    exit 2
 fi
