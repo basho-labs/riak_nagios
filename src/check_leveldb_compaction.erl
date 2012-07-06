@@ -29,7 +29,7 @@ handle_output(0, Output) ->
     case length(Output) > 0 of
         true ->
             Errors = string:join(Output, ", "),
-            {critical, "LevelDB compaction errors found: ~s", Errors};
+            {critical, "LevelDB compaction errors found: ~s", [Errors]};
         false ->
             {ok, "LevelDB is ok", []}
     end;
@@ -113,7 +113,7 @@ critical_parse_resp_test() ->
     os:cmd("mkdir critical && echo \"Compaction error\" > critical/LOG"),
     Cmd = wrap_command(generate_command(["critical"])),
     Resp = os:cmd(Cmd),
-    ?assertMatch({critical, _, _}, parse_resp(Resp)).
+    ?assertMatch({critical, _, [_]}, parse_resp(Resp)).
 
 ok_parse_resp_test() ->
     os:cmd("mkdir okay"),
