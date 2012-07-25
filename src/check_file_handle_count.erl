@@ -17,7 +17,7 @@ run_cmd(Options, CmdOptions) ->
     Node = proplists:get_value(node, Options),
     Pid = rpc:call(Node, os, getpid, []),
     %% os:cmd/1 does not return exit code so we fake it the best way we can
-    Cmd = "O=$(lsof -p " ++ Pid ++ "  2>&1);echo $?;echo \"$O\"",    
+    Cmd = "O=$(lsof -n -p " ++ Pid ++ "  2>&1);echo $?;echo \"$O\"",    
     Resp = rpc:call(Node, os, cmd, [Cmd]),
     Lines = string:tokens(Resp, "\n"),
     ExitCode = list_to_integer(lists:nth(1, Lines)),
