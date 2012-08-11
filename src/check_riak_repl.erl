@@ -97,7 +97,7 @@ critical() ->
     {critical, "Unexpected return from process_info", []}.
 
 warning() ->
-    {warning, "Socket errors were detected on some replication connections. These errors have been logged on the Riak node. No action is required", []}.
+    {ok, "Socket errors were detected on some replication connections. These errors have been logged on the Riak node. No action is required", []}.
 
 okay() ->
     {ok, "Replication links working correctly.", []}.
