@@ -30,7 +30,7 @@ make escript
 #### Deployment
 
 ```bash
-scp check_node root@s3p406.san2:/usr/sbin/
+scp check_node root@host.net:/usr/sbin/
 ```
 
 #### NRPE
@@ -38,9 +38,9 @@ scp check_node root@s3p406.san2:/usr/sbin/
 Riak related checks are configured in `/etc/nagios/nrpe.d/riak.cfg`, for example:
 
 ```
-command[check_riak_up]=/usr/lib/riak/erts-5.8.5/bin/escript check_node --node riak@s3p406.san2 riak_kv_up
-command[check_riak_repl]=/usr/lib/riak/erts-5.8.5/bin/escript check_node --node riak@s3p406.san2 riak_repl
-command[check_riak_cs_up]=/usr/lib/riak/erts-5.8.5/bin/escript check_node --node riak_cs@s3p406.san2 node_up
+command[check_riak_up]=/usr/lib/riak/erts-5.8.5/bin/escript check_node --node riak@host.net riak_kv_up
+command[check_riak_repl]=/usr/lib/riak/erts-5.8.5/bin/escript check_node --node riak@host.net riak_repl
+command[check_riak_cs_up]=/usr/lib/riak/erts-5.8.5/bin/escript check_node --node riak_cs@host.net node_up
 ```
 
 After any change to this file, you'll need to restart the nrpe server. On ubuntu, that's as easy as `service nagios-nrpe-server restart`
