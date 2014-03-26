@@ -26,13 +26,13 @@ run_cmd(Options, CmdOptions) ->
     BothMsg = "~B request workers in use; ~B bucket workers in use",
     if
         Requests >= RequestCritical, BucketLists >= BucketCritical -> {critical, BothMsg, [Requests, BucketLists]};
-        Requests >= RequestCritical -> {critical, Msg, [Requests]};
-        BucketLists >= BucketCritical -> {critical, Msg, [BucketLists]};
+        Requests >= RequestCritical -> {critical, RequestMsg, [Requests]};
+        BucketLists >= BucketCritical -> {critical, BucketMsg, [BucketLists]};
         Requests >= RequestWarning, BucketLists >= BucketWarning -> {warning, BothMsg, [Requests, BucketLists]};
-        Requests >= RequestWarning -> {warning, Msg, [Requests]};
-        BucketLists >= BucketWarning -> {warning, Msg, [BucketLists]};
-        true -> {ok, Msg, [Count]}
-    end;
+        Requests >= RequestWarning -> {warning, RequestMsg, [Requests]};
+        BucketLists >= BucketWarning -> {warning, BucketMsg, [BucketLists]};
+        true -> {ok, BothMsg, [Requests, BucketLists]}
+    end.
 
 
 option_spec_list() ->
