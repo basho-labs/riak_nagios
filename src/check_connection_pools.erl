@@ -23,7 +23,7 @@ run_cmd(Options, CmdOptions) ->
     BucketWarning = proplists:get_value(bucket_warning, CmdOptions),
     RequestMsg = "~B request poolboy workers in use",
     BucketMsg = "~B bucket listing poolboy workers in use",
-    BothMsg = "~B request workers in use; ~B bucket workers in use~n",
+    BothMsg = "~B request workers in use; ~B bucket workers in use",
     if
         Requests >= RequestCritical, BucketLists >= BucketCritical -> {critical, BothMsg, [Requests, BucketLists]};
         Requests >= RequestCritical -> {critical, RequestMsg, [Requests]};
