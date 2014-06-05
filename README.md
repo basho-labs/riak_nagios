@@ -33,6 +33,10 @@ make escript
 scp check_node root@host.net:/usr/sbin/
 ```
 
+**Note**: This script creates an `.erlang.cookie` inside the user's home
+directory. This can cause issues with users with no home directories set by
+default, or users with non-writable home directories.
+
 #### NRPE
 
 Riak related checks are configured in `/etc/nagios/nrpe.d/riak.cfg`, for example:
