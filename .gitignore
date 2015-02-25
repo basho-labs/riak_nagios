@@ -4,3 +4,4 @@ src/*.beam
 deps
 check_node
 .eunit
+.vagrant
